@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { IProvider } from "@web3auth/base";
@@ -25,6 +26,8 @@ export default function Home() {
   const [solanaWallet, setSolanaWallet] = useState<SolanaWallet | null>(null);
   const [userAccounts, setUserAccounts] = useState<string[] | null>(null);
   const [balance, setBalance] = useState<number | null>(null);
+  const [privateKey, setPrivateKey] = useState<string | null | undefined>(null);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     const initWeb3Auth = async () => {
@@ -52,6 +55,21 @@ export default function Home() {
 
     initWeb3Auth();
   }, []);
+
+  const getPrivateKey = async (
+    provider: IProvider | null
+  ): Promise<string | undefined> => {
+    if (!provider) {
+      console.log("web3authProvider not initialised!");
+      return;
+    }
+
+    const privateKey = await provider.request({
+      method: "solanaPrivateKey",
+    });
+
+    return privateKey as string;
+  };
 
   const web3AuthLogin = async () => {
     if (!web3auth) {
@@ -83,6 +101,12 @@ export default function Home() {
       connection &&
       (await connection.getBalance(new PublicKey(userAccounts[0])));
     setBalance(balance);
+
+    const privateKey = await getPrivateKey(web3authProvider);
+    setPrivateKey(privateKey);
+
+    const user = await web3auth.getUserInfo();
+    setUser(user);
   };
 
   const web3AuthLogout = async () => {
@@ -95,6 +119,9 @@ export default function Home() {
     setWeb3authProvider(web3authProvider);
     setSolanaWallet(null);
     setUserAccounts(null);
+    setBalance(null);
+    setPrivateKey(null);
+    setUser(null);
   };
 
   return (
@@ -110,7 +137,7 @@ export default function Home() {
           </button>
         ) : (
           <button
-            className="p-4 bg-red-600 rounded-md text-white"
+            className="p-4 bg-teal-600 rounded-md text-white"
             onClick={web3AuthLogin}
           >
             Login
@@ -118,19 +145,33 @@ export default function Home() {
         )}
       </div>
 
+      {user && (
+        <div className="w-full py-5 space-y-2">
+          <img
+            loading="lazy"
+            src={user?.profileImage}
+            referrerPolicy="no-referrer"
+            alt={user?.name}
+          />
+          <p>Name: {user?.name}</p>
+          <p>Email: {user?.email}</p>
+        </div>
+      )}
+
       {solanaWallet && (
-        <div className="mx-auto py-10">
+        <div className="w-full py-5 space-y-2">
           <p>
             User Account:{" "}
             <Link
-              href={`https://solscan.io/account/${userAccounts}`}
+              href={`https://solscan.io/account/${userAccounts}?cluster=devnet`}
               target="_blank"
               className="text-blue-700"
             >
               {userAccounts}
             </Link>
           </p>
-          <p>Balance: {balance} SOL</p>
+          <p>Balance: {balance && balance / LAMPORTS_PER_SOL} SOL</p>
+          <p>Private Key: {privateKey?.slice(0, 30)}...</p>
         </div>
       )}
     </main>
