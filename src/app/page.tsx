@@ -4,14 +4,7 @@
 import { IProvider } from "@web3auth/base";
 import { Web3Auth } from "@web3auth/modal";
 import { SolanaWallet } from "@web3auth/solana-provider";
-import {
-  Connection,
-  ConnectionConfig,
-  LAMPORTS_PER_SOL,
-  PublicKey,
-  SystemProgram,
-  Transaction,
-} from "@solana/web3.js";
+import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
